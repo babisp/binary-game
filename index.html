@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Παιχνίδι Δυαδικών Αριθμών</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 700px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .game-info {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .target {
+            font-size: 1.2em;
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        .target-number {
+            font-size: 3em;
+            color: #667eea;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .live-sum-container {
+            background: #f0f0f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .live-sum-label {
+            font-size: 1em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .live-sum {
+            font-size: 2.5em;
+            color: #764ba2;
+            font-weight: bold;
+        }
+
+        .binary-container {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .bit-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .bit-value {
+            font-size: 0.9em;
+            color: #999;
+            font-weight: bold;
+        }
+
+        .bit {
+            width: 60px;
+            height: 60px;
+            background: #e0e0e0;
+            border: 3px solid #ccc;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .bit:hover {
+            transform: scale(1.05);
+            border-color: #667eea;
+        }
+
+        .bit.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .success-message {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: #4caf50;
+            color: white;
+            border-radius: 10px;
+            font-size: 1.5em;
+            font-weight: bold;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+            animation: pulse 0.5s;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .play-again {
+            display: block;
+            margin: 20px auto;
+            padding: 15px 40px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: none;
+        }
+
+        .play-again:hover {
+            background: #764ba2;
+        }
+
+        .play-again.show {
+            display: block;
+        }
+
+        .score {
+            text-align: center;
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .score span {
+            font-size: 1.4em;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Παιχνίδι Δυαδικών Αριθμών</h1>
+        
+        <div class="score">Σκορ: <span id="score">0</span></div>
+
+        <div class="game-info">
+            <div class="target">Αριθμός Στόχος:</div>
+            <div class="target-number" id="target">0</div>
+        </div>
+
+        <div class="live-sum-container">
+            <div class="live-sum-label">Τρέχον Άθροισμα:</div>
+            <div class="live-sum" id="liveSum">0</div>
+        </div>
+
+        <div class="live-sum-container">
+            <div class="live-sum-label">Δυαδικός Αριθμός:</div>
+            <div class="live-sum" id="binaryRepresentation">00000000</div>
+        </div>
+
+        <div class="binary-container" id="binaryContainer"></div>
+
+        <div class="success-message" id="successMessage">
+            🎉 Σωστά! Μπράβο! 🎉
+        </div>
+
+        <button class="play-again" id="playAgain">Παίξε Ξανά</button>
+    </div>
+
+    <script>
+        const NUM_BITS = 8;
+        let targetNumber = 0;
+        let currentSum = 0;
+        let bits = new Array(NUM_BITS).fill(0);
+        let score = 0;
+        let gameActive = true;
+        
+        // Configurable success emojis
+        const successEmojis = ['🎉', '😻', '😱', '🚀', '⭐', '💯', '🔥', '✨', '🎊', '🏆'];
+
+        function init() {
+            createBitElements();
+            newRound();
+        }
+
+        function createBitElements() {
+            const container = document.getElementById('binaryContainer');
+            container.innerHTML = '';
+
+            for (let i = 0; i < NUM_BITS; i++) {
+                const bitValue = Math.pow(2, NUM_BITS - 1 - i);
+                
+                const column = document.createElement('div');
+                column.className = 'bit-column';
+
+                const valueLabel = document.createElement('div');
+                valueLabel.className = 'bit-value';
+                valueLabel.textContent = bitValue;
+
+                const bitElement = document.createElement('div');
+                bitElement.className = 'bit';
+                bitElement.textContent = '0';
+                bitElement.dataset.index = i;
+                bitElement.addEventListener('click', toggleBit);
+
+                column.appendChild(valueLabel);
+                column.appendChild(bitElement);
+                container.appendChild(column);
+            }
+        }
+
+        function toggleBit(e) {
+            if (!gameActive) return;
+
+            const index = parseInt(e.target.dataset.index);
+            bits[index] = bits[index] === 0 ? 1 : 0;
+            
+            e.target.textContent = bits[index];
+            e.target.classList.toggle('active');
+
+            updateSum();
+            checkWin();
+        }
+
+        function updateSum() {
+            currentSum = 0;
+            let binaryString = '';
+            for (let i = 0; i < NUM_BITS; i++) {
+                binaryString += bits[i];
+                if (bits[i] === 1) {
+                    currentSum += Math.pow(2, NUM_BITS - 1 - i);
+                }
+            }
+            document.getElementById('liveSum').textContent = currentSum;
+            document.getElementById('binaryRepresentation').textContent = binaryString;
+        }
+
+        function checkWin() {
+            if (currentSum === targetNumber) {
+                gameActive = false;
+                score++;
+                document.getElementById('score').textContent = score;
+                
+                // Pick random emoji
+                const randomEmoji = successEmojis[Math.floor(Math.random() * successEmojis.length)];
+                document.getElementById('successMessage').innerHTML = `${randomEmoji} Σωστά! Μπράβο! ${randomEmoji}`;
+                
+                // Trigger confetti
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    useWorker: false
+                });
+                
+                // Additional confetti burst
+                setTimeout(() => {
+                    confetti({
+                        particleCount: 50,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0 },
+                        useWorker: false
+                    });
+                    confetti({
+                        particleCount: 50,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1 },
+                        useWorker: false
+                    });
+                }, 200);
+                
+                document.getElementById('successMessage').classList.add('show');
+                document.getElementById('playAgain').classList.add('show');
+            }
+        }
+
+        function newRound() {
+            gameActive = true;
+            targetNumber = Math.floor(Math.random() * 256);
+            document.getElementById('target').textContent = targetNumber;
+            
+            bits.fill(0);
+            currentSum = 0;
+            document.getElementById('liveSum').textContent = '0';
+            document.getElementById('binaryRepresentation').textContent = '00000000';
+            
+            const bitElements = document.querySelectorAll('.bit');
+            bitElements.forEach(bit => {
+                bit.textContent = '0';
+                bit.classList.remove('active');
+            });
+
+            document.getElementById('successMessage').classList.remove('show');
+            document.getElementById('playAgain').classList.remove('show');
+        }
+
+        document.getElementById('playAgain').addEventListener('click', newRound);
+
+        init();
+    </script>
+</body>
+</html>
